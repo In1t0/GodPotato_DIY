@@ -77,7 +77,7 @@ namespace GodPotato
             else if (propertyType.IsEnum)
             {
                 valueObj = Enum.Parse(propertyType, value);
-            }            
+            }
 
             propertyInfo.SetValue(obj, valueObj, null);
 
@@ -133,7 +133,9 @@ namespace GodPotato
 
             return (T)value;
         }
-        public static string PrintHelp(Type type,string head,string appName, string[] examples) {;
+        public static string PrintHelp(Type type, string head, string appName, string[] examples)
+        {
+            ;
             Type argsAttributeType = typeof(ArgsAttribute);
             object value = type.GetConstructor(new Type[0]).Invoke(new object[0]);
             PropertyInfo[] propertyInfos = type.GetProperties();
@@ -159,7 +161,7 @@ namespace GodPotato
             stringBuilder.WriteLine();
             foreach (var argsAttribute in propertyInfoList)
             {
-                stringBuilder.WriteLine("\t-{0} Required:{1} {2} (default {3})", argsAttribute.FieldName, argsAttribute.Required, argsAttribute.Description, argsAttribute.DefaultValue); 
+                stringBuilder.WriteLine("\t-{0} Required:{1} {2} (default {3})", argsAttribute.FieldName, argsAttribute.Required, argsAttribute.Description, argsAttribute.DefaultValue);
             }
             stringBuilder.WriteLine();
             stringBuilder.WriteLine("Example:");
@@ -169,7 +171,7 @@ namespace GodPotato
                 stringBuilder.WriteLine(example);
             }
 
-            
+
 
             if (requiredPropertyList.Count > 0)
             {
@@ -189,6 +191,7 @@ namespace GodPotato
                 stringBuilder.WriteLine(requiredExample); ;
             }
 
+            /*
             if (propertyInfoList.Count > 0 && requiredPropertyList.Count != propertyInfoList.Count)
             {
                 string allParameterExample = "";
@@ -206,10 +209,11 @@ namespace GodPotato
                 }
                 stringBuilder.WriteLine(allParameterExample); ;
             }
+            */
 
 
 
-            return stringBuilder.ToString(); 
+            return stringBuilder.ToString();
         }
     }
 }

