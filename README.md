@@ -1,3 +1,13 @@
+# 添加功能
+## `DirectoryEntry` 添加用户
+
+```bash
+GodPotato -adduser test:123456
+```
+后续计划添加 `-group`参数，指定要加入的用户组。
+
+## TODO 反弹shell
+## TODO dump hash
 # GodPotato
 
 
